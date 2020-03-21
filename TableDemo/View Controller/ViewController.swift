@@ -50,6 +50,7 @@ class ViewController: NSViewController {
     tableView.delegate = self
     tableView.dataSource = self
     originalColumns = tableView.tableColumns
+    tableView.doubleAction = #selector(handleDoubleClick)
   }
   
   
@@ -91,6 +92,13 @@ class ViewController: NSViewController {
     alert.beginSheetModal(for: self.view.window!) { (response) in
       
     }
+  }
+  
+  @objc private func handleDoubleClick() {
+    let clickedRow = tableView.clickedRow
+    guard clickedRow >= 0 else { return }
+    let purchase = viewModel.purchases[clickedRow]
+    showAlert(forPurchase: purchase)
   }
   
 }
