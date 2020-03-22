@@ -1,11 +1,3 @@
-//
-//  ViewController.swift
-//  TableDemo
-//
-//  Created by Gabriel Theodoropoulos.
-//  Copyright © 2019 Appcoda. All rights reserved.
-//
-
 import Cocoa
 
 class ViewController: NSViewController {
@@ -96,9 +88,24 @@ class ViewController: NSViewController {
   
   @objc private func handleDoubleClick() {
     let clickedRow = tableView.clickedRow
-    guard clickedRow >= 0 else { return }
+    /* guard clickedRow >= 0 else { return }
     let purchase = viewModel.purchases[clickedRow]
-    showAlert(forPurchase: purchase)
+    showAlert(forPurchase: purchase) */
+    if viewModel.displayMode == .plain {
+      guard clickedRow >= 0,
+        let row = tableView.rowView(atRow: clickedRow, makeIfNecessary: false),
+        let cellView = row.view(atColumn: 0) as? NSTableCellView,
+        let id = cellView.textField?.integerValue,
+        let purchase = viewModel.getPurchase(withID: id) else { return }
+      showAlert(forPurchase: purchase)
+    } else {
+      guard clickedRow >= 0,
+        let row = tableView.rowView(atRow: clickedRow, makeIfNecessary: false),
+        let view = row.view(atColumn: 0) as? PurchasesDetailView,
+        let purchase = viewModel.getPurchase(withID: view.idLabel.integerValue)
+       else { return }
+      showAlert(forPurchase: purchase)
+    }
   }
   
 }
@@ -159,6 +166,34 @@ extension ViewController: NSTableViewDelegate {
   
   func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
     return viewModel.displayMode == .plain ? 21 : 150
+  }
+  
+  func tableViewSelectionDidChange(_ notification: Notification) {
+    // If no row is selected, then this property has the -1 value.
+    // If, however, multiple rows are selected, then it returns the index of the last row.
+    let selectedRow = tableView.selectedRow
+    if selectedRow >= 0 && tableView.selectedRowIndexes.count == 1 {
+      if let amount = viewModel.purchases[selectedRow].paymentInfo?.amount {
+        selectedAmountLabel?.stringValue = "Selected amount \(amount)"
+      }
+    }
+  }
+  
+  func tableView(_ tableView: NSTableView, rowActionsForRow row: Int, edge: NSTableView.RowActionEdge) -> [NSTableViewRowAction] {
+    if edge == .trailing {
+      let action = NSTableViewRowAction(style: .destructive, title: "Delete Purchase") { (_, _) in
+        self.viewModel.removePurchase(atIndex: row)
+        tableView.reloadData()
+      }
+      return [action]
+    } else {
+      let purchase = viewModel.purchases[row]
+      let action = NSTableViewRowAction(style: .regular, title: "Print Purchase") { (_, _) in
+        print(purchase)
+      }
+      action.backgroundColor = NSColor.gray
+      return [action]
+    }
   }
   
 }
