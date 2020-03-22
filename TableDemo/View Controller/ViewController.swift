@@ -30,6 +30,7 @@ class ViewController: NSViewController {
   override func viewWillAppear() {
     super.viewWillAppear()
     tableView.reloadData()
+    setupSortDescriptor()
   }
   
   override var representedObject: Any? {
@@ -108,6 +109,13 @@ class ViewController: NSViewController {
     }
   }
   
+  private func setupSortDescriptor() {
+    let idDescriptor = NSSortDescriptor(key: "id", ascending: true)
+    let userInfoDescriptor = NSSortDescriptor(key: "userInfo.username", ascending: true)
+    tableView.tableColumns[0].sortDescriptorPrototype = idDescriptor
+    tableView.tableColumns[1].sortDescriptorPrototype = userInfoDescriptor
+  }
+  
 }
 
 
@@ -116,6 +124,12 @@ extension ViewController: NSTableViewDataSource {
   
   func numberOfRows(in tableView: NSTableView) -> Int {
     return viewModel.purchases.count
+  }
+  
+  func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
+    guard let sortDescriptor = tableView.sortDescriptors.first else { return }
+    viewModel.sortPurchases(key: sortDescriptor.key ?? "id", ascending: sortDescriptor.ascending)
+    tableView.reloadData()
   }
 }
 
@@ -194,6 +208,10 @@ extension ViewController: NSTableViewDelegate {
       action.backgroundColor = NSColor.gray
       return [action]
     }
+  }
+  
+  func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+    return true
   }
   
 }

@@ -75,13 +75,22 @@ class ViewModel: NSObject {
   }
   
   
-  func sortPurchases(ascending: Bool) {
+  func sortPurchases(key: String, ascending: Bool) {
     purchases.sort { (p1, p2) -> Bool in
-      guard let id1 = p1.id, let id2 = p2.id else { return true }
-      if ascending {
-        return id1 < id2
+      if key == "id" {
+        guard let id1 = p1.id, let id2 = p2.id else { return true }
+        if ascending {
+          return id1 < id2
+        } else {
+          return id2 < id1
+        }
       } else {
-        return id2 < id1
+        guard let id1 = p1.userInfo?.username, let id2 = p2.userInfo?.username else { return true }
+        if ascending {
+          return id1 < id2
+        } else {
+          return id2 < id1
+        }
       }
     }
   }
